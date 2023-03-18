@@ -21,7 +21,7 @@ const isValidEnvelope = (instance) => {
 const addToDatabase = (instance) => {
   // Add envelope to envelopes array with id
   if (isValidEnvelope(instance)) {
-    instance.id = `${envelopeIdCounter}`;
+    instance.id = `${envelopeIdCounter++}`;
     envelopes.push(instance);
     return envelopes[envelopes.length - 1];
   }
