@@ -1,14 +1,13 @@
 const express = require("express");
 const { envelopesRouter } = require("./envelopes");
 const app = express();
+const bodyParser = require("body-parser");
+
+// Use body parser to JSON
+app.use(bodyParser.json());
 
 // Use envelopesRouter on /envelopes
 app.use("/envelopes", envelopesRouter);
-
-// Test get
-app.get("/", (req, res, next) => {
-  res.send("Hello, World!");
-});
 
 // Error handler
 app.use("/", (err, req, res, next) => {
