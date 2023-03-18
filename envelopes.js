@@ -5,6 +5,7 @@ const {
   getAllFromDatabase,
   getFromDatabaseById,
   updateInstanceInDatabase,
+  deleteInstanceFromDatabase,
 } = require("./db.js");
 
 // Check envelopeId Middleware
@@ -42,8 +43,14 @@ envelopesRouter.post("/", (req, res, next) => {
 
 // Update a budget envelope
 envelopesRouter.put("/:envelopeId", (req, res, next) => {
-  const updatedInstance = updateInstanceInDatabase(req.body, req.envelope.id);
+  const updatedInstance = updateInstanceInDatabase(req.envelope, req.body);
   res.send(updatedInstance);
+});
+
+// Delete a budget envelope
+envelopesRouter.delete("/:envelopeId", (req, res, next) => {
+  const deleted = deleteInstanceFromDatabase(req.envelope);
+  if (deleted) res.status(204).send();
 });
 
 module.exports = {

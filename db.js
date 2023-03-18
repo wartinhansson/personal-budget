@@ -39,16 +39,28 @@ const getFromDatabaseById = (id) => {
 };
 
 // Update an instance in database
-const updateInstanceInDatabase = (instance, id) => {
-  const instanceIndex = envelopes.findIndex((element) => element.id === id);
+const updateInstanceInDatabase = (instance, parameters) => {
+  const index = envelopes.findIndex((element) => element.id === instance.id);
 
   if (isValidEnvelope(instance)) {
-    const { label, limit } = instance;
+    const { label, limit } = parameters;
 
-    envelopes[instanceIndex].label = label;
-    envelopes[instanceIndex].limit = limit;
+    envelopes[index].label = label;
+    envelopes[index].limit = limit;
 
-    return envelopes[instanceIndex];
+    return envelopes[index];
+  }
+};
+
+// Delete from database by id
+const deleteInstanceFromDatabase = (instance) => {
+  const index = envelopes.findIndex((element) => element.id === instance.id);
+
+  if (index !== -1) {
+    envelopes.splice(index, 1);
+    return true;
+  } else {
+    return false;
   }
 };
 
@@ -57,4 +69,5 @@ module.exports = {
   getAllFromDatabase,
   getFromDatabaseById,
   updateInstanceInDatabase,
+  deleteInstanceFromDatabase,
 };
