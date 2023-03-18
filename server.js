@@ -10,6 +10,12 @@ app.get("/", (req, res, next) => {
   res.send("Hello, World!");
 });
 
+// Error handler
+app.use("/", (err, req, res, next) => {
+  const status = err.status || 500;
+  res.status(status).send(err.message);
+});
+
 // Start server on port 3000
 const PORT = 3000;
 app.listen(PORT, () => {
