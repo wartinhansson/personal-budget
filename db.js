@@ -1,5 +1,5 @@
 const envelopes = [];
-const envelopeIdCounter = 1;
+let envelopeIdCounter = 1;
 
 // Check if envelope is valid
 const isValidEnvelope = (instance) => {
