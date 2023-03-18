@@ -1,32 +1,31 @@
 const envelopes = [];
-const nextId = 1;
+const envelopeIdCounter = 1;
+
+// Check if envelope is valid
+const isValidEnvelope = (envelope) => {
+  // Check if label is string
+  envelope.label = envelope.label;
+  if (typeof envelope.label !== "string")
+    throw new Error("Envelope label must a string.");
+
+  // Check if limit is number
+  if (!isNaN(parseFloat(envelope.limit)) && isFinite(envelope.limit)) {
+    envelope.limit = Number(envelope.limit);
+  } else {
+    throw new Error("Envelope limit must be a number.");
+  }
+
+  return true;
+};
 
 // Add to database
 const addEnvelope = (envelope) => {
-  const { label, limit } = envelope;
-
-  // Check if both label and limit included
-  if (!label && !limit)
-    return new Error("New envelope must include both label and limit.");
-
-  // Check correct type of label and limit
-  if (typeof label !== "String")
-    return new Error("Label must be of type String.");
-  else if (typeof limit !== "Number")
-    return new Error("Limit must be of type Number.");
-
-  // Add to array with id
-  const newEnvelope = {
-    id: nextId,
-    ...envelope,
-  };
-
-  envelopes.push(newEnvelope);
-
-  // Increase id counter
-  nextId++;
-
-  return newEnvelope;
+  // Add envelope to envelopes array with id
+  if (isValidEnvelope(envelope)) {
+    envelope.id = `${envelopeIdCounter}`;
+    envelopes.push(envelope);
+    return envelopes[envelopes.length - 1];
+  }
 };
 
 module.exports = {
