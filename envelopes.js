@@ -41,6 +41,28 @@ envelopesRouter.post("/", (req, res, next) => {
   }
 });
 
+// Transfer value from one envelope to another
+envelopesRouter.post("/transfer/:from/:to", (req, res, next) => {
+  const from = getFromDatabaseById(req.params.from);
+  const to = getFromDatabaseById(req.params.to);
+
+  if (!from) res.status(404).send("From envelope not found.");
+  if (!to) res.status(404).send("To envelope not found.");
+
+  const amount = Number(req.query.amount);
+
+  updateInstanceInDatabase(from, {
+    ...from,
+    limit: (from.limit -= amount),
+  });
+  updateInstanceInDatabase(to, {
+    ...to,
+    limit: (to.limit += amount),
+  });
+
+  res.send(`${amount} was transferred from ${from.label} to ${to.label}.`);
+});
+
 // Update a budget envelope
 envelopesRouter.put("/:envelopeId", (req, res, next) => {
   const updatedInstance = updateInstanceInDatabase(req.envelope, req.body);
