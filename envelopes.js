@@ -7,9 +7,9 @@ envelopesRouter.post("/", (req, res, next) => {
   try {
     // Try to create envelope with req body
     const envelope = addEnvelope(req.body);
-    if (envelope) res.status(201).send(envelope);
+    res.status(201).send(envelope);
   } catch (err) {
-    // Set error status and send to error handler
+    // Send to error handler
     err.status = 400;
     next(err);
   }
