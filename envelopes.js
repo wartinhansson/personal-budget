@@ -4,6 +4,7 @@ const {
   addToDatabase,
   getAllFromDatabase,
   getFromDatabaseById,
+  updateInstanceInDatabase,
 } = require("./db.js");
 
 // Check envelopeId Middleware
@@ -18,12 +19,12 @@ envelopesRouter.param("envelopeId", (req, res, next, envelopeId) => {
   }
 });
 
-// Get all envelopes
+// Get all budget envelopes
 envelopesRouter.get("/", (req, res, next) => {
   res.send(getAllFromDatabase());
 });
 
-// Get envelope
+// Get a budget envelope
 envelopesRouter.get("/:envelopeId", (req, res, next) => {
   res.send(req.envelope);
 });
@@ -31,14 +32,18 @@ envelopesRouter.get("/:envelopeId", (req, res, next) => {
 // Create budget envelope
 envelopesRouter.post("/", (req, res, next) => {
   try {
-    // Try to create envelope with req body
     const envelope = addToDatabase(req.body);
     res.status(201).send(envelope);
   } catch (err) {
-    // Send to error handler
     err.status = 400;
     next(err);
   }
+});
+
+// Update a budget envelope
+envelopesRouter.put("/:envelopeId", (req, res, next) => {
+  const updatedInstance = updateInstanceInDatabase(req.body, req.envelope.id);
+  res.send(updatedInstance);
 });
 
 module.exports = {

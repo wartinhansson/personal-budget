@@ -1,7 +1,8 @@
+let balance = 0;
 const envelopes = [];
 let envelopeIdCounter = 1;
 
-// Check if envelope is valid
+// Check if instance is valid envelope
 const isValidEnvelope = (instance) => {
   // Check if label is string
   if (typeof instance.label !== "string")
@@ -17,12 +18,12 @@ const isValidEnvelope = (instance) => {
   return true;
 };
 
-// Add to database
+// Add instance to database
 const addToDatabase = (instance) => {
-  // Add envelope to envelopes array with id
   if (isValidEnvelope(instance)) {
     instance.id = `${envelopeIdCounter++}`;
     envelopes.push(instance);
+
     return envelopes[envelopes.length - 1];
   }
 };
@@ -32,13 +33,28 @@ const getAllFromDatabase = () => {
   return envelopes;
 };
 
-// Get from database with ID
+// Get instance from database with ID
 const getFromDatabaseById = (id) => {
   return envelopes.find((element) => element.id === id);
+};
+
+// Update an instance in database
+const updateInstanceInDatabase = (instance, id) => {
+  const instanceIndex = envelopes.findIndex((element) => element.id === id);
+
+  if (isValidEnvelope(instance)) {
+    const { label, limit } = instance;
+
+    envelopes[instanceIndex].label = label;
+    envelopes[instanceIndex].limit = limit;
+
+    return envelopes[instanceIndex];
+  }
 };
 
 module.exports = {
   addToDatabase,
   getAllFromDatabase,
   getFromDatabaseById,
+  updateInstanceInDatabase,
 };
