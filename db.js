@@ -2,15 +2,14 @@ const envelopes = [];
 const envelopeIdCounter = 1;
 
 // Check if envelope is valid
-const isValidEnvelope = (envelope) => {
+const isValidEnvelope = (instance) => {
   // Check if label is string
-  envelope.label = envelope.label;
-  if (typeof envelope.label !== "string")
+  if (typeof instance.label !== "string")
     throw new Error("Envelope label must a string.");
 
   // Check if limit is number
-  if (!isNaN(parseFloat(envelope.limit)) && isFinite(envelope.limit)) {
-    envelope.limit = Number(envelope.limit);
+  if (!isNaN(parseFloat(instance.limit)) && isFinite(instance.limit)) {
+    instance.limit = Number(instance.limit);
   } else {
     throw new Error("Envelope limit must be a number.");
   }
@@ -19,15 +18,21 @@ const isValidEnvelope = (envelope) => {
 };
 
 // Add to database
-const addEnvelope = (envelope) => {
+const addToDatabase = (instance) => {
   // Add envelope to envelopes array with id
-  if (isValidEnvelope(envelope)) {
-    envelope.id = `${envelopeIdCounter}`;
-    envelopes.push(envelope);
+  if (isValidEnvelope(instance)) {
+    instance.id = `${envelopeIdCounter}`;
+    envelopes.push(instance);
     return envelopes[envelopes.length - 1];
   }
 };
 
+// Get all from database
+const getAllFromDatabase = () => {
+  return envelopes;
+};
+
 module.exports = {
-  addEnvelope,
+  addToDatabase,
+  getAllFromDatabase,
 };
