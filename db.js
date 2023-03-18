@@ -32,7 +32,13 @@ const getAllFromDatabase = () => {
   return envelopes;
 };
 
+// Get from database with ID
+const getFromDatabaseById = (id) => {
+  return envelopes.find((element) => element.id === id);
+};
+
 module.exports = {
   addToDatabase,
   getAllFromDatabase,
+  getFromDatabaseById,
 };
