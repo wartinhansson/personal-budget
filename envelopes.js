@@ -1,5 +1,5 @@
 const express = require("express");
-const envelopesRouter = express().router();
+const envelopesRouter = express.Router();
 const { addEnvelope } = require("./db.js");
 
 // Create budget envelope
