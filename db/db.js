@@ -6,37 +6,14 @@ const pool = new Pool({
   user: process.env.USER,
 });
 
-let balance = 0;
-const envelopes = [];
-let envelopeIdCounter = 1;
-
-// Check if instance is valid envelope
-const isValidEnvelope = (instance) => {
-  // Check if label is string
-  if (typeof instance.label !== "string")
-    throw new Error("Envelope label must a string.");
-
-  // Check if limit is number
-  if (!isNaN(parseFloat(instance.limit)) && isFinite(instance.limit)) {
-    instance.limit = Number(instance.limit);
-  } else {
-    throw new Error("Envelope limit must be a number.");
-  }
-
-  return true;
-};
-
 // Add instance to database
 const addToDatabase = async (instance) => {
-  if (isValidEnvelope(instance)) {
-    const { label, limit } = instance;
-    const query =
-      "INSERT INTO envelopes (envelope_label, envelope_limit) VALUES ($1, $2) RETURNING *";
+  const { label, limit } = instance;
+  const query =
+    "INSERT INTO envelopes (envelope_label, envelope_limit) VALUES ($1, $2) RETURNING *";
+  const { rows } = await pool.query(query, [label, limit]);
 
-    const { rows } = await pool.query(query, [label, limit]);
-
-    return rows;
-  }
+  return rows;
 };
 
 // Get all from database
@@ -48,37 +25,34 @@ const getAllFromDatabase = async () => {
 };
 
 // Get instance from database with ID
-const getFromDatabaseById = async (id) => {
+const getFromDatabaseById = async (envelope_id) => {
   const query = "SELECT * FROM envelopes WHERE envelope_id = $1";
-  const { rows } = await pool.query(query, [id]);
+  const { rows } = await pool.query(query, [envelope_id]);
 
   return rows;
 };
 
 // Update an instance in database
-const updateInstanceInDatabase = (instance, parameters) => {
-  const index = envelopes.findIndex((element) => element.id === instance.id);
+const updateInstanceInDatabase = async (instance, parameters) => {
+  const label = parameters["envelope_label"];
+  const limit = parameters["envelope_limit"];
+  const id = instance["envelope_id"];
+  const query =
+    "UPDATE envelopes SET envelope_label = $1, envelope_limit = $2 WHERE envelope_id = $3 RETURNING *";
+  const { rows } = await pool.query(query, [label, limit, id]);
 
-  if (isValidEnvelope(instance)) {
-    const { label, limit } = parameters;
-
-    envelopes[index].label = label;
-    envelopes[index].limit = limit;
-
-    return envelopes[index];
-  }
+  return rows;
 };
 
 // Delete from database by id
-const deleteInstanceFromDatabase = (instance) => {
-  const index = envelopes.findIndex((element) => element.id === instance.id);
+const deleteInstanceFromDatabase = async (instance) => {
+  const id = instance["envelope_id"];
+  const query = "DELETE FROM envelopes WHERE envelope_id = $1";
+  const { rows } = await pool.query(query, [id]);
 
-  if (index !== -1) {
-    envelopes.splice(index, 1);
-    return true;
-  } else {
-    return false;
-  }
+  if (rows) return true;
+
+  return false;
 };
 
 module.exports = {

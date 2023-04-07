@@ -12,13 +12,24 @@ const {
 envelopesRouter.param("envelopeId", async (req, res, next, envelopeId) => {
   const envelope = await getFromDatabaseById(envelopeId);
 
-  if (envelope) {
-    req.envelope = envelope;
+  if (envelope.length) {
+    req.envelope = envelope[0];
     next();
   } else {
     res.status(404).send("Envelope not found.");
   }
 });
+
+const LabelAndLimitMiddleware = (req, res, next) => {
+  const label = req.body["envelope_label"];
+  const limit = req.body["envelope_limit"];
+
+  if (label && limit) next();
+  else
+    res
+      .status(400)
+      .send("Request body must contain envelope_label and envelope_limit");
+};
 
 // Get all budget envelopes
 envelopesRouter.get("/", async (req, res, next) => {
@@ -33,14 +44,10 @@ envelopesRouter.get("/:envelopeId", (req, res, next) => {
 });
 
 // Create budget envelope
-envelopesRouter.post("/", async (req, res, next) => {
-  try {
-    const envelope = await addToDatabase(req.body);
-    res.status(201).send(envelope);
-  } catch (err) {
-    err.status = 400;
-    next(err);
-  }
+envelopesRouter.post("/", LabelAndLimitMiddleware, async (req, res, next) => {
+  const envelope = await addToDatabase(req.body);
+
+  res.status(201).send(envelope);
 });
 
 // Transfer value from one envelope to another
@@ -66,14 +73,23 @@ envelopesRouter.post("/transfer/:from/:to", (req, res, next) => {
 });
 
 // Update a budget envelope
-envelopesRouter.put("/:envelopeId", (req, res, next) => {
-  const updatedInstance = updateInstanceInDatabase(req.envelope, req.body);
-  res.send(updatedInstance);
-});
+envelopesRouter.put(
+  "/:envelopeId",
+  LabelAndLimitMiddleware,
+  async (req, res, next) => {
+    const updatedInstance = await updateInstanceInDatabase(
+      req.envelope,
+      req.body
+    );
+
+    res.send(updatedInstance);
+  }
+);
 
 // Delete a budget envelope
-envelopesRouter.delete("/:envelopeId", (req, res, next) => {
-  const deleted = deleteInstanceFromDatabase(req.envelope);
+envelopesRouter.delete("/:envelopeId", async (req, res, next) => {
+  const deleted = await deleteInstanceFromDatabase(req.envelope);
+
   if (deleted) res.status(204).send();
 });
 
