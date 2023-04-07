@@ -9,8 +9,8 @@ const {
 } = require("../db/db.js");
 
 // Check envelopeId Middleware
-envelopesRouter.param("envelopeId", (req, res, next, envelopeId) => {
-  const envelope = getFromDatabaseById(envelopeId);
+envelopesRouter.param("envelopeId", async (req, res, next, envelopeId) => {
+  const envelope = await getFromDatabaseById(envelopeId);
 
   if (envelope) {
     req.envelope = envelope;
@@ -21,8 +21,10 @@ envelopesRouter.param("envelopeId", (req, res, next, envelopeId) => {
 });
 
 // Get all budget envelopes
-envelopesRouter.get("/", (req, res, next) => {
-  res.send(getAllFromDatabase());
+envelopesRouter.get("/", async (req, res, next) => {
+  const envelopes = await getAllFromDatabase();
+
+  res.send(envelopes);
 });
 
 // Get a budget envelope
@@ -31,9 +33,9 @@ envelopesRouter.get("/:envelopeId", (req, res, next) => {
 });
 
 // Create budget envelope
-envelopesRouter.post("/", (req, res, next) => {
+envelopesRouter.post("/", async (req, res, next) => {
   try {
-    const envelope = addToDatabase(req.body);
+    const envelope = await addToDatabase(req.body);
     res.status(201).send(envelope);
   } catch (err) {
     err.status = 400;

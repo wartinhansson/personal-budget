@@ -1,3 +1,11 @@
+const { Pool } = require("pg");
+require("dotenv").config();
+const pool = new Pool({
+  host: process.env.HOST,
+  database: process.env.DATABASE,
+  user: process.env.USER,
+});
+
 let balance = 0;
 const envelopes = [];
 let envelopeIdCounter = 1;
@@ -19,23 +27,32 @@ const isValidEnvelope = (instance) => {
 };
 
 // Add instance to database
-const addToDatabase = (instance) => {
+const addToDatabase = async (instance) => {
   if (isValidEnvelope(instance)) {
-    instance.id = `${envelopeIdCounter++}`;
-    envelopes.push(instance);
+    const { label, limit } = instance;
+    const query =
+      "INSERT INTO envelopes (envelope_label, envelope_limit) VALUES ($1, $2) RETURNING *";
 
-    return envelopes[envelopes.length - 1];
+    const { rows } = await pool.query(query, [label, limit]);
+
+    return rows;
   }
 };
 
 // Get all from database
-const getAllFromDatabase = () => {
-  return envelopes;
+const getAllFromDatabase = async () => {
+  const query = "SELECT * FROM envelopes ORDER BY envelope_id ASC";
+  const { rows } = await pool.query(query);
+
+  return rows;
 };
 
 // Get instance from database with ID
-const getFromDatabaseById = (id) => {
-  return envelopes.find((element) => element.id === id);
+const getFromDatabaseById = async (id) => {
+  const query = "SELECT * FROM envelopes WHERE envelope_id = $1";
+  const { rows } = await pool.query(query, [id]);
+
+  return rows;
 };
 
 // Update an instance in database
