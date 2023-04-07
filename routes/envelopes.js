@@ -6,7 +6,7 @@ const {
   getFromDatabaseById,
   updateInstanceInDatabase,
   deleteInstanceFromDatabase,
-} = require("./db.js");
+} = require("../db/db.js");
 
 // Check envelopeId Middleware
 envelopesRouter.param("envelopeId", (req, res, next, envelopeId) => {
