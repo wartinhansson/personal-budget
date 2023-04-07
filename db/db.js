@@ -8,7 +8,8 @@ const pool = new Pool({
 
 // Add instance to database
 const addToDatabase = async (instance) => {
-  const { label, limit } = instance;
+  const label = instance["envelope_label"];
+  const limit = instance["envelope_limit"];
   const query =
     "INSERT INTO envelopes (envelope_label, envelope_limit) VALUES ($1, $2) RETURNING *";
   const { rows } = await pool.query(query, [label, limit]);
@@ -29,7 +30,7 @@ const getFromDatabaseById = async (envelope_id) => {
   const query = "SELECT * FROM envelopes WHERE envelope_id = $1";
   const { rows } = await pool.query(query, [envelope_id]);
 
-  return rows;
+  return rows[0];
 };
 
 // Update an instance in database

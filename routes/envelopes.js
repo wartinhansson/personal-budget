@@ -13,7 +13,7 @@ envelopesRouter.param("envelopeId", async (req, res, next, envelopeId) => {
   const envelope = await getFromDatabaseById(envelopeId);
 
   if (envelope.length) {
-    req.envelope = envelope[0];
+    req.envelope = envelope;
     next();
   } else {
     res.status(404).send("Envelope not found.");
@@ -51,25 +51,32 @@ envelopesRouter.post("/", LabelAndLimitMiddleware, async (req, res, next) => {
 });
 
 // Transfer value from one envelope to another
-envelopesRouter.post("/transfer/:from/:to", (req, res, next) => {
-  const from = getFromDatabaseById(req.params.from);
-  const to = getFromDatabaseById(req.params.to);
+envelopesRouter.post("/transfer/:from/:to", async (req, res, next) => {
+  const from = await getFromDatabaseById(req.params.from);
+  const to = await getFromDatabaseById(req.params.to);
 
   if (!from) res.status(404).send("From envelope not found.");
-  if (!to) res.status(404).send("To envelope not found.");
+  else if (!to) res.status(404).send("To envelope not found.");
 
-  const amount = Number(req.query.amount);
+  if (from && to) {
+    const amount = Number(req.body.amount);
 
-  updateInstanceInDatabase(from, {
-    ...from,
-    limit: (from.limit -= amount),
-  });
-  updateInstanceInDatabase(to, {
-    ...to,
-    limit: (to.limit += amount),
-  });
+    console.log(from);
+    console.log(to);
 
-  res.send(`${amount} was transferred from ${from.label} to ${to.label}.`);
+    updateInstanceInDatabase(from, {
+      ...from,
+      envelope_limit: (from["envelope_limit"] -= amount),
+    });
+    updateInstanceInDatabase(to, {
+      ...to,
+      envelope_limit: (to["envelope_limit"] += amount),
+    });
+
+    res.send(
+      `${amount} was transferred from ${from["envelope_label"]} to ${to["envelope_label"]}.`
+    );
+  }
 });
 
 // Update a budget envelope
