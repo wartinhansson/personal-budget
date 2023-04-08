@@ -4,41 +4,62 @@ const {
   addToDatabase,
   getAllFromDatabase,
   getFromDatabaseById,
-  updateInstanceInDatabase,
-  deleteInstanceFromDatabase,
+  updateInDatabase,
+  deleteFromDatabase,
 } = require("../db/db.js");
+const statement = {
+  table: "envelopes",
+  columns: ["envelope_label", "envelope_limit"],
+  id: "envelope_id",
+};
 
 // Check envelopeId Middleware
 envelopesRouter.param("envelopeId", async (req, res, next, envelopeId) => {
-  const envelope = await getFromDatabaseById(envelopeId);
+  // Statement values
+  statement.values = [envelopeId];
 
+  // Find in database
+  const envelope = await getFromDatabaseById(statement);
+
+  // If match then set req.envelope to match and go next
   if (envelope) {
     req.envelope = envelope;
     next();
   } else {
+    // Else send envelope not found
     res.status(404).send("Envelope not found.");
   }
 });
 
-const LabelAndLimitMiddleware = (req, res, next) => {
+// Check envelope_label and envelope_limit Middleware
+const CheckBodyMiddleware = (req, res, next) => {
   const label = req.body["envelope_label"];
   const limit = req.body["envelope_limit"];
 
+  // Check if limit is less than zero
   if (limit < 0) {
     res.status(400).send("envelope_limit must be greater than 0");
     return;
   }
 
-  if (label && limit) next();
-  else
+  // If both label and limit exist then set req parameters and next
+  if (label && limit) {
+    req.label = label;
+    req.limit = limit;
+
+    next();
+  } else {
+    // Else send bad request
     res
       .status(400)
       .send("Request body must contain envelope_label and envelope_limit");
+  }
 };
 
 // Get all budget envelopes
 envelopesRouter.get("/", async (req, res, next) => {
-  const envelopes = await getAllFromDatabase();
+  // Get all envelopes from database
+  const envelopes = await getAllFromDatabase(statement);
 
   res.send(envelopes);
 });
@@ -49,62 +70,37 @@ envelopesRouter.get("/:envelopeId", (req, res, next) => {
 });
 
 // Create budget envelope
-envelopesRouter.post("/", LabelAndLimitMiddleware, async (req, res, next) => {
-  const envelope = await addToDatabase(req.body);
+envelopesRouter.post("/", CheckBodyMiddleware, async (req, res, next) => {
+  // Statement values
+  statement.values = [req.label, req.limit];
+
+  // Add to database
+  const envelope = await addToDatabase(statement);
 
   res.status(201).send(envelope);
-});
-
-// Transfer value from one envelope to another
-envelopesRouter.post("/transfer/:from/:to", async (req, res, next) => {
-  const from = await getFromDatabaseById(req.params.from);
-  const to = await getFromDatabaseById(req.params.to);
-
-  if (!from) res.status(404).send("From envelope not found.");
-  else if (!to) res.status(404).send("To envelope not found.");
-
-  if (from && to) {
-    const amount = Number(req.body.amount);
-
-    if (from["envelope_limit"] - amount < 0) {
-      res.status(400).send(`Not enough funds in ${from["envelope_label"]}`);
-      return;
-    }
-
-    updateInstanceInDatabase(from, {
-      ...from,
-      envelope_limit: (from["envelope_limit"] -= amount),
-    });
-    updateInstanceInDatabase(to, {
-      ...to,
-      envelope_limit: (to["envelope_limit"] += amount),
-    });
-
-    res.send(
-      `${amount} was transferred from ${from["envelope_label"]} to ${to["envelope_label"]}.`
-    );
-  }
 });
 
 // Update a budget envelope
 envelopesRouter.put(
   "/:envelopeId",
-  LabelAndLimitMiddleware,
+  CheckBodyMiddleware,
   async (req, res, next) => {
-    const updatedInstance = await updateInstanceInDatabase(
-      req.envelope,
-      req.body
-    );
+    // Statement values
+    statement.values = [req.label, req.limit, req.envelope["envelope_id"]];
 
-    res.send(updatedInstance);
+    // Update in database
+    const updatedEnvelope = await updateInDatabase(statement);
+
+    res.send(updatedEnvelope);
   }
 );
 
 // Delete a budget envelope
 envelopesRouter.delete("/:envelopeId", async (req, res, next) => {
-  const deleted = await deleteInstanceFromDatabase(req.envelope);
+  // Delete envelope from database
+  const deleted = await deleteFromDatabase(statement);
 
-  if (deleted) res.status(204).send();
+  if (deleted) res.sendStatus(204);
 });
 
 module.exports = {
