@@ -14,7 +14,7 @@ const addToDatabase = async (instance) => {
     "INSERT INTO envelopes (envelope_label, envelope_limit) VALUES ($1, $2) RETURNING *";
   const { rows } = await pool.query(query, [label, limit]);
 
-  return rows;
+  return rows[0];
 };
 
 // Get all from database
@@ -42,7 +42,7 @@ const updateInstanceInDatabase = async (instance, parameters) => {
     "UPDATE envelopes SET envelope_label = $1, envelope_limit = $2 WHERE envelope_id = $3 RETURNING *";
   const { rows } = await pool.query(query, [label, limit, id]);
 
-  return rows;
+  return rows[0];
 };
 
 // Delete from database by id

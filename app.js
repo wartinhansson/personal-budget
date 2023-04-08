@@ -2,7 +2,6 @@ const express = require("express");
 const { envelopesRouter } = require("./routes/envelopes");
 const app = express();
 const bodyParser = require("body-parser");
-require("dotenv").config();
 
 // Use body parser to JSON
 app.use(bodyParser.json());

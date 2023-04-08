@@ -24,6 +24,11 @@ const LabelAndLimitMiddleware = (req, res, next) => {
   const label = req.body["envelope_label"];
   const limit = req.body["envelope_limit"];
 
+  if (limit < 0) {
+    res.status(400).send("envelope_limit must be greater than 0");
+    return;
+  }
+
   if (label && limit) next();
   else
     res
