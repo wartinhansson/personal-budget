@@ -1,9 +1,8 @@
 const express = require("express");
 const { envelopesRouter } = require("./routes/envelopes");
-const { transactionsRouter } = require("./routes/transfers");
+const { transactionsRouter } = require("./routes/transactions");
 const app = express();
 const bodyParser = require("body-parser");
-const { transactionsRouter } = require("./routes/transactions");
 
 // Use body parser to JSON
 app.use(bodyParser.json());
