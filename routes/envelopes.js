@@ -12,7 +12,7 @@ const {
 envelopesRouter.param("envelopeId", async (req, res, next, envelopeId) => {
   const envelope = await getFromDatabaseById(envelopeId);
 
-  if (envelope.length) {
+  if (envelope) {
     req.envelope = envelope;
     next();
   } else {
@@ -61,8 +61,10 @@ envelopesRouter.post("/transfer/:from/:to", async (req, res, next) => {
   if (from && to) {
     const amount = Number(req.body.amount);
 
-    console.log(from);
-    console.log(to);
+    if (from["envelope_limit"] - amount < 0) {
+      res.status(400).send(`Not enough funds in ${from["envelope_label"]}`);
+      return;
+    }
 
     updateInstanceInDatabase(from, {
       ...from,
