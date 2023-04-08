@@ -4,8 +4,8 @@ const {
   addToDatabase,
   getAllFromDatabase,
   getFromDatabaseById,
-  updateInstanceInDatabase,
-  deleteInstanceFromDatabase,
+  updateInDatabase,
+  deleteFromDatabase,
 } = require("../db/db.js");
 const statement = {
   table: "envelopes",
@@ -31,7 +31,8 @@ envelopesRouter.param("envelopeId", async (req, res, next, envelopeId) => {
   }
 });
 
-const LabelAndLimitMiddleware = (req, res, next) => {
+// Check envelope_label and envelope_limit Middleware
+const CheckBodyMiddleware = (req, res, next) => {
   const label = req.body["envelope_label"];
   const limit = req.body["envelope_limit"];
 
@@ -69,7 +70,7 @@ envelopesRouter.get("/:envelopeId", (req, res, next) => {
 });
 
 // Create budget envelope
-envelopesRouter.post("/", LabelAndLimitMiddleware, async (req, res, next) => {
+envelopesRouter.post("/", CheckBodyMiddleware, async (req, res, next) => {
   // Statement values
   statement.values = [req.label, req.limit];
 
@@ -79,59 +80,27 @@ envelopesRouter.post("/", LabelAndLimitMiddleware, async (req, res, next) => {
   res.status(201).send(envelope);
 });
 
-// Transfer value from one envelope to another
-envelopesRouter.post("/transfer/:from/:to", async (req, res, next) => {
-  const query = "SELECT * FROM envelopes WHERE envelope_id = $1";
-  const from = await getFromDatabaseById(query, req.params.from);
-  const to = await getFromDatabaseById(query, req.params.to);
-
-  if (!from) res.status(404).send("From envelope not found.");
-  else if (!to) res.status(404).send("To envelope not found.");
-
-  if (from && to) {
-    const amount = Number(req.body.amount);
-
-    if (from["envelope_limit"] - amount < 0) {
-      res.status(400).send(`Not enough funds in ${from["envelope_label"]}`);
-      return;
-    }
-
-    updateInstanceInDatabase(from, {
-      ...from,
-      envelope_limit: (from["envelope_limit"] -= amount),
-    });
-    updateInstanceInDatabase(to, {
-      ...to,
-      envelope_limit: (to["envelope_limit"] += amount),
-    });
-
-    res.send(
-      `${amount} was transferred from ${from["envelope_label"]} to ${to["envelope_label"]}.`
-    );
-  }
-});
-
 // Update a budget envelope
 envelopesRouter.put(
   "/:envelopeId",
-  LabelAndLimitMiddleware,
+  CheckBodyMiddleware,
   async (req, res, next) => {
     // Statement values
     statement.values = [req.label, req.limit, req.envelope["envelope_id"]];
 
     // Update in database
-    const updatedInstance = await updateInstanceInDatabase(statement);
+    const updatedEnvelope = await updateInDatabase(statement);
 
-    res.send(updatedInstance);
+    res.send(updatedEnvelope);
   }
 );
 
 // Delete a budget envelope
 envelopesRouter.delete("/:envelopeId", async (req, res, next) => {
   // Delete envelope from database
-  const deleted = await deleteInstanceFromDatabase(statement);
+  const deleted = await deleteFromDatabase(statement);
 
-  if (deleted) res.status(204).send();
+  if (deleted) res.sendStatus(204);
 });
 
 module.exports = {

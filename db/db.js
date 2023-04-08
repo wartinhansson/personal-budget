@@ -49,7 +49,7 @@ const getFromDatabaseById = async (statement) => {
 };
 
 // Update an instance in database
-const updateInstanceInDatabase = async (statement) => {
+const updateInDatabase = async (statement) => {
   let valueCounter = 1;
   // Build query
   let query = `UPDATE ${statement.table} SET `;
@@ -69,7 +69,7 @@ const updateInstanceInDatabase = async (statement) => {
 };
 
 // Delete from database by id
-const deleteInstanceFromDatabase = async (statement) => {
+const deleteFromDatabase = async (statement) => {
   const query = `DELETE FROM ${statement.table} WHERE ${statement.id} = $1`;
   const { rows } = await pool.query(query, statement.values);
 
@@ -82,6 +82,6 @@ module.exports = {
   addToDatabase,
   getAllFromDatabase,
   getFromDatabaseById,
-  updateInstanceInDatabase,
-  deleteInstanceFromDatabase,
+  updateInDatabase,
+  deleteFromDatabase,
 };

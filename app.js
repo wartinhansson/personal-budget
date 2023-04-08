@@ -1,5 +1,6 @@
 const express = require("express");
 const { envelopesRouter } = require("./routes/envelopes");
+const { transfersRouter } = require("./routes/transfers");
 const app = express();
 const bodyParser = require("body-parser");
 
@@ -8,6 +9,9 @@ app.use(bodyParser.json());
 
 // Use envelopesRouter on /envelopes
 app.use("/envelopes", envelopesRouter);
+
+// Use transfersRouter on /transfers
+app.use("/transfers", transfersRouter);
 
 // Error handler
 app.use("/", (err, req, res, next) => {
