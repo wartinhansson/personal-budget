@@ -1,8 +1,9 @@
 const express = require("express");
 const { envelopesRouter } = require("./routes/envelopes");
-const { transfersRouter } = require("./routes/transfers");
+const { transactionsRouter } = require("./routes/transfers");
 const app = express();
 const bodyParser = require("body-parser");
+const { transactionsRouter } = require("./routes/transactions");
 
 // Use body parser to JSON
 app.use(bodyParser.json());
@@ -11,7 +12,7 @@ app.use(bodyParser.json());
 app.use("/envelopes", envelopesRouter);
 
 // Use transfersRouter on /transfers
-app.use("/transfers", transfersRouter);
+app.use("/transactions", transactionsRouter);
 
 // Error handler
 app.use("/", (err, req, res, next) => {
