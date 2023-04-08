@@ -17,6 +17,11 @@ const statement = {
   ],
   id: "transaction_id",
 };
+const envelopeStatement = {
+  table: "envelopes",
+  columns: ["envelope_label", "envelope_limit"],
+  id: "envelope_id",
+};
 
 // Check transactionId Middleware
 transactionsRouter.param(
@@ -42,11 +47,7 @@ transactionsRouter.param(
 // Check fromId Middleware
 transactionsRouter.param("fromId", async (req, res, next, fromId) => {
   // Statement values
-  const envelopeStatement = {
-    table: "envelopes",
-    id: "envelope_id",
-    values: [fromId],
-  };
+  envelopeStatement.values = [fromId];
 
   // Find in database
   const envelope = await getFromDatabaseById(envelopeStatement);
@@ -62,11 +63,7 @@ transactionsRouter.param("fromId", async (req, res, next, fromId) => {
 // Check toId Middleware
 transactionsRouter.param("toId", async (req, res, next, toId) => {
   // Statement values
-  const envelopeStatement = {
-    table: "envelopes",
-    id: "envelope_id",
-    values: [toId],
-  };
+  envelopeStatement.values = [toId];
 
   // Find in database
   const envelope = await getFromDatabaseById(envelopeStatement);
@@ -143,18 +140,36 @@ transactionsRouter.post(
     day = day < 10 ? `0${day}` : day;
     const currentDate = `${year}-${month}-${day}`;
 
-    // Statement values
-    statement.values = [
-      currentDate,
-      req.amount,
+    // Update from envelope
+    envelopeStatement.values = [
+      req.fromEnvelope["envelope_label"],
+      req.fromEnvelope["envelope_limit"] - req.amount,
       req.fromEnvelope["envelope_id"],
+    ];
+    const updatedFromEnvelope = await updateInDatabase(envelopeStatement);
+
+    // Update to envelope
+    envelopeStatement.values = [
+      req.toEnvelope["envelope_label"],
+      req.toEnvelope["envelope_limit"] + req.amount,
       req.toEnvelope["envelope_id"],
     ];
+    const updatedToEnvelope = await updateInDatabase(envelopeStatement);
 
-    // Add to database
-    const transaction = await addToDatabase(statement);
+    if (updatedFromEnvelope && updatedToEnvelope) {
+      // Statement values
+      statement.values = [
+        currentDate,
+        req.amount,
+        req.fromEnvelope["envelope_id"],
+        req.toEnvelope["envelope_id"],
+      ];
 
-    res.send(transaction);
+      // Add to database
+      const transaction = await addToDatabase(statement);
+
+      res.send(transaction);
+    } else res.sendStatus(500);
   }
 );
 
