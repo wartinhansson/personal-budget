@@ -9,7 +9,6 @@ const pool = new Pool({
 // Add instance to database
 const addToDatabase = async (statement) => {
   let valueCounter = 1;
-  //const query = `INSERT INTO ${statement.table} (${statement.columns}) VALUES ($1, $2) RETURNING *`;
   // Build query
   let query = `INSERT INTO ${statement.table} (`;
   for (let i = 0; i < statement.columns.length; i++) {
